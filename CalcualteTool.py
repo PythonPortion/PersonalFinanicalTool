@@ -2,16 +2,15 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Loan:
-    interest: float  # 利率
-    years: int  # 年限
-
-
-@dataclass
-class LoanInfo:
-    principal: float
-    loan: Loan
-    changes: list
+class EachMonthPayment:
+    """
+    Class to represent each month payment information.
+    """
+    month_index: int  # index of month
+    each_month_payment: float
+    each_month_principal: float
+    each_month_interest: float
+    rest_principal: float
 
 
 def calculate_equal_installment(principle, monthly_rate, months):
@@ -29,16 +28,18 @@ def calculate_equal_installment(principle, monthly_rate, months):
                           /
                           ((1 + monthly_rate) ** months - 1))
 
-    # The info_list contains a tuple which consisted of (month_index,each_month_payment,each_month_principal,
-    # each_month_interest)
+    # The info_list contains a EachMonthPayment
     info_list = []
 
     for month_index in range(1, months + 1):
         each_month_interest = principle * monthly_rate
         each_month_principal = each_month_payment - each_month_interest
         principle -= each_month_principal
-        info_list.append((month_index,
-                          each_month_payment,
-                          each_month_principal,
-                          each_month_interest))
+        rest_principal = principle
+        result = EachMonthPayment(month_index,
+                                  each_month_payment,
+                                  each_month_principal,
+                                  each_month_interest,
+                                  rest_principal)
+        info_list.append(result)
     return info_list
