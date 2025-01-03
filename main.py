@@ -103,6 +103,8 @@ def sd_tt():
                 f"还款 {info.each_month_payment:.2f}, "
                 f"本金 {info.each_month_principal:.2f}, "
                 f"利息 {info.each_month_interest:.2f}, "
+                f"总还款 {info.has_payment_value:.2f}, "
+                f"总支付利息 {info.has_pay_interest:.2f}, "
                 f"剩余本金 {info.rest_principal:.2f}")
 
         last_portion_index = loanItem.interval_month - 1
@@ -137,6 +139,8 @@ def gj_tt():
                 f"还款 {info.each_month_payment:.2f}, "
                 f"本金 {info.each_month_principal:.2f}, "
                 f"利息 {info.each_month_interest:.2f}, "
+                f"总还款 {info.has_payment_value:.2f}, "
+                f"总支付利息 {info.has_pay_interest:.2f}, "
                 f"剩余本金 {info.rest_principal:.2f}")
 
         last_portion_index = loanItem.interval_month - 1
