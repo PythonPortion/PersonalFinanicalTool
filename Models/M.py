@@ -53,8 +53,9 @@ class LoanSubItem:
     """
     year_rate: float  # 年利率
     start_date: datetime
-    init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间
-    end_date: datetime = datetime(2053, 5, 22)  # 默认结束日期
+    end_date: datetime = datetime(2053, 5, 22)  # 默认结束日期,如果遇到利率调整，则需要更改这个值
+    init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
+    terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
 
     """
     @property 的作用
@@ -146,3 +147,28 @@ class LoanInfo:
         items.append(sub_item_02)
 
         return items
+
+
+@dataclass
+class Result:
+    current_date: str
+    current_month: str
+    each_month_payment: float
+    each_month_principal: float
+    each_month_interest: float
+    total_payment: float
+    total_interest: float
+    total_payment_principal: float
+    rest_principle: float
+
+    def __str__(self):
+        desc = (f"\t{self.current_date}," +
+                f"第{self.current_month:^5}月: " +
+                f"还款 {self.each_month_payment:.2f}, " +
+                f"本金 {self.each_month_principal:.2f}, " +
+                f"利息 {self.each_month_interest:.2f}, " +
+                f"总还款 {self.total_payment:.2f}, " +
+                f"总支付利息 {self.total_interest:.2f}, " +
+                f"总支付本金 {self.total_payment_principal:.2f}, " +
+                f"剩余本金 {self.rest_principle:.2f}")
+        return desc
