@@ -149,6 +149,59 @@ def print_loan_result_detail(result_list: list[Result],
                     print("--利率结束调整---------------------------------------\n")
 
 
+def deal_with_gj(loan_info: LoanInfo, need_print: bool = True):
+    # 设置起始值
+    # loan_info.need_all_detail = False
+    loan_info.rest_principal = loan_info.gj_principal
+    loan_info.rest_months = loan_info.total_months
+    result_list = get_gj_or_sd_info(loan_info, loan_info.gj_loan_items)
+    if need_print:
+        # print_loan_result_detail(result_list, loan_info.gj_loan_items, True)
+        print_loan_result_detail(result_list,
+                                 loan_info.gj_loan_items)
+    return result_list
+
+
+def deal_with_sd(loan_info: LoanInfo, need_print: bool = True):
+    # 设置起始值
+    loan_info.rest_principal = loan_info.sd_principal
+    loan_info.rest_months = loan_info.total_months
+    result_list = get_gj_or_sd_info(loan_info, loan_info.loan_items)
+    if need_print:
+        print_loan_result_detail(result_list, loan_info.loan_items)
+    return result_list
+
+
+def deal_with_combination(loan_info: LoanInfo):
+    gj_result_list = deal_with_gj(loan_info, False)
+    sd_result_list = deal_with_sd(loan_info, False)
+    assert len(gj_result_list) == len(sd_result_list), "组合贷,其还款周期必须相等"
+    for index, item in enumerate(gj_result_list):
+        gj_result = item
+        sd_result = sd_result_list[index]
+        each_month_payment = gj_result.each_month_payment + sd_result.each_month_payment
+        each_month_principal = gj_result.each_month_principal + sd_result.each_month_principal
+        each_month_interest = gj_result.each_month_interest + sd_result.each_month_interest
+        total_payment = gj_result.total_payment + sd_result.total_payment
+        total_interest = gj_result.total_interest + sd_result.total_interest
+        total_payment_principal = gj_result.total_payment_principal + sd_result.total_payment_principal
+        rest_principle = gj_result.rest_principle + sd_result.rest_principle
+
+        desc = (f"\t{item.current_date}," +
+                f"第{item.current_month:^5}月: " +
+                f"还款 {each_month_payment:.2f} ({gj_result.each_month_payment:.2f}+{sd_result.each_month_payment: .2f}), " +
+                f"本金 {each_month_principal:.2f}, " +
+                f"利息 {each_month_interest:.2f}, " +
+                f"总还款 {total_payment:.2f}, " +
+                f"总支付利息 {total_interest:.2f}, " +
+                f"总支付本金 {total_payment_principal:.2f}, " +
+                f"剩余本金 {rest_principle:.2f}")
+        print(desc)
+
+        if (index+1) % 12 == 0:
+            print("****** " * 20)
+            print("\n")
+
 def get_loan_info(loan_type: LoanType):
     loan_info = LoanInfo()
 
@@ -161,27 +214,14 @@ def get_loan_info(loan_type: LoanType):
 
     match loan_type:
         case LoanType.GJ:
-            # 设置起始值
-            # loan_info.need_all_detail = False
-            loan_info.rest_principal = loan_info.gj_principal
-            loan_info.rest_months = loan_info.total_months
-            result_list = get_gj_or_sd_info(loan_info, loan_info.gj_loan_items)
-            # print_loan_result_detail(result_list, loan_info.gj_loan_items, True)
-            print_loan_result_detail(result_list,
-                                     loan_info.gj_loan_items, )
-
+            deal_with_gj(loan_info)
         case LoanType.SD:
-            # 设置起始值
-            # loan_info.need_all_detail = True
-            loan_info.rest_principal = loan_info.sd_principal
-            loan_info.rest_months = loan_info.total_months
-            result_list = get_gj_or_sd_info(loan_info, loan_info.loan_items)
-            print_loan_result_detail(result_list, loan_info.loan_items)
+            deal_with_sd(loan_info)
         case LoanType.ALL:
-            print("zh")
+            deal_with_combination(loan_info)
 
 
 def start():
-    get_loan_info(LoanType.GJ)
-    # get_loan_info(LoanType.ALL)
+    # get_loan_info(LoanType.GJ)
+    get_loan_info(LoanType.ALL)
     # get_loan_info(LoanType.SD)

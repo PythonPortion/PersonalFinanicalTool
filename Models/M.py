@@ -96,8 +96,6 @@ class LoanInfo:
     gj_rest_principal: Optional[float] = None  # 剩余本金
 
     total_months: int = 360
-    # 如果需要所有的详细信息,将这个属性设置 True
-    need_all_detail: bool = False
 
     @property
     def loan_items(self):
