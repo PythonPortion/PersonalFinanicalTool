@@ -1,7 +1,52 @@
-from Models.M import EachMonthPayment, LoanType, LoanSubItem, LoanInfo, Result
+from Models.M import EachMonthPayment, LoanType, LoanPeriodicalItem, LoanInfo, Result
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-from Calculate import calculate
+
+
+def each_installment(principle: float, monthly_rate: float, months: int):
+    if type(principle) is None or type(months) is None:
+        assert False, "Principle and months cannot be None"
+
+    p = principle
+    r = monthly_rate
+    m = months
+
+    # 等额本息的算法
+    each_month_payment = (p * (r * (1 + r) ** m) / ((1 + r) ** m - 1))
+
+    # The info_list contains a EachMonthPayment
+    info_list = []
+
+    for month_index in range(1, months + 1):
+        each_month_interest = principle * monthly_rate
+        each_month_principal = each_month_payment - each_month_interest
+        principle -= each_month_principal
+        rest_principal = principle
+        result = EachMonthPayment(month_index,
+                                  each_month_payment,
+                                  each_month_principal,
+                                  each_month_interest,
+                                  rest_principal)
+        info_list.append(result)
+    return info_list
+
+
+def periodical_loan_items(loan_info: LoanInfo, loan_type: LoanType):
+    """
+    每个利率周期的信息
+    :param loan_info:
+    :param loan_type:
+    :return:
+    """
+    loan_item_list: list[LoanPeriodicalItem] = []
+
+    if loan_type == LoanType.SD:
+        loan_item_list = loan_info.sd_loan_items
+    elif loan_type == LoanType.GJ:
+        loan_item_list = loan_info.gj_loan_items
+    elif loan_type == LoanType.ALL:
+        assert False, "如果是组合贷款,需要再外面单独计算在合并,不要直接调用此方法"
+    return loan_item_list
 
 
 def fetch_result_detail(info: EachMonthPayment,
@@ -26,7 +71,8 @@ def fetch_result_detail(info: EachMonthPayment,
     date_str = new_date.strftime("%Y-%m-%d")
     formatted_month = f"{month_index:03}"
 
-    result = Result(date_str,
+    result = Result(new_date,
+                    date_str,
                     formatted_month,
                     info.each_month_payment,
                     info.each_month_principal,
@@ -35,15 +81,14 @@ def fetch_result_detail(info: EachMonthPayment,
                     total_interest,
                     total_payment_principal, info.rest_principal)
 
-    # print(result)
     return result
 
 
-def get_gj_or_sd_info(loan_info: LoanInfo, loan_item_list: list[LoanSubItem]):
+def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
     """
     获取公积金或者商贷每个月的还款信息
     :param loan_info: 贷款信息
-    :param loan_item_list: 每一个利率周期的信息
+    :param loan_type: 贷款类型
     :return: 每月还款额的实体
     """
     month_interval: int = 0
@@ -51,10 +96,21 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_item_list: list[LoanSubItem]):
     total_interest: float = 0.0
     total_payment_principal: float = 0.0
     result_list: list[Result] = []
+    loan_item_list = periodical_loan_items(loan_info, loan_type)
+
+    rest_principal: float = 0
+
+    if loan_type == LoanType.SD:
+        rest_principal = loan_info.sd_principal
+    elif loan_type == LoanType.GJ:
+        rest_principal = loan_info.gj_principal
+
+    loan_info.rest_principal = rest_principal
+    loan_info.rest_months = loan_info.total_months
 
     for index, loanItem in enumerate(loan_item_list):
         # 每个利率周期内的月度还款信息
-        equal_installment = calculate.each_installment(
+        equal_installment = each_installment(
             loan_info.rest_principal,
             loanItem.month_rate,
             loan_info.rest_months
@@ -89,8 +145,11 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_item_list: list[LoanSubItem]):
 
 
 def print_loan_result_detail(result_list: list[Result],
-                             loan_sub_items: list[LoanSubItem],
+                             loan_info: LoanInfo,
+                             loan_type: LoanType,
                              need_print_all: bool = False):
+    loan_sub_items = periodical_loan_items(loan_info, loan_type)
+
     print(f"初始年化利息:\t{loan_sub_items[0].year_rate * 100:.3f}%")
 
     for index, result in enumerate(result_list):
@@ -110,30 +169,22 @@ def print_loan_result_detail(result_list: list[Result],
                 target_start_tmp = loan_sub_item.start_date
                 if date_tmp == target_start_tmp:
                     print(f"--利率调整为:\t{loan_sub_item.year_rate * 100:.3f}%-----------------------------------\n")
-                elif date_tmp == target_end_tmp and date_tmp != loan_sub_item.terminate_date:
+                elif date_tmp == target_end_tmp and date_tmp != loan_info.terminate_date:
                     print("--利率结束调整---------------------------------------\n")
 
 
 def deal_with_gj(loan_info: LoanInfo, need_print: bool = True):
     # 设置起始值
-    # loan_info.need_all_detail = False
-    loan_info.rest_principal = loan_info.gj_principal
-    loan_info.rest_months = loan_info.total_months
-    result_list = get_gj_or_sd_info(loan_info, loan_info.gj_loan_items)
+    result_list = get_gj_or_sd_info(loan_info, LoanType.GJ)
     if need_print:
-        # print_loan_result_detail(result_list, loan_info.gj_loan_items, True)
-        print_loan_result_detail(result_list,
-                                 loan_info.gj_loan_items)
+        print_loan_result_detail(result_list, loan_info, LoanType.GJ, need_print)
     return result_list
 
 
 def deal_with_sd(loan_info: LoanInfo, need_print: bool = True):
-    # 设置起始值
-    loan_info.rest_principal = loan_info.sd_principal
-    loan_info.rest_months = loan_info.total_months
-    result_list = get_gj_or_sd_info(loan_info, loan_info.loan_items)
+    result_list = get_gj_or_sd_info(loan_info, LoanType.SD)
     if need_print:
-        print_loan_result_detail(result_list, loan_info.loan_items)
+        print_loan_result_detail(result_list, loan_info, LoanType.SD, need_print)
     return result_list
 
 
@@ -172,7 +223,7 @@ def get_loan_info(loan_type: LoanType):
     loan_info = LoanInfo()
 
     # 获取所有年化利率区间的总月数
-    variant_months = [x.interval_month for x in loan_info.loan_items]
+    variant_months = [x.interval_month for x in loan_info.sd_loan_items]
 
     month_count = sum(variant_months)
 
@@ -189,5 +240,6 @@ def get_loan_info(loan_type: LoanType):
 
 def start():
     # get_loan_info(LoanType.GJ)
-    get_loan_info(LoanType.ALL)
-    # get_loan_info(LoanType.SD)
+    get_loan_info(LoanType.SD)
+    # get_loan_info(LoanType.ALL)
+
