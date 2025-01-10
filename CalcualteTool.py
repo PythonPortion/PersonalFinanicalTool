@@ -132,7 +132,7 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
                                               total_interest,
                                               total_payment_principal,
                                               month_interval)
-            result_list.append(result_item)
+            # result_list.append(result_item)
 
         last_portion_index = loanItem.interval_month - 1
         tmp_rest_p = equal_installment[last_portion_index].rest_principal
