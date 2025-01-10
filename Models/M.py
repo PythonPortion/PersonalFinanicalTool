@@ -55,8 +55,8 @@ class LoanSubItem:
     year_rate: float  # 年利率
     start_date: datetime
     end_date: datetime = datetime(2053, 5, 22)  # 默认结束日期,如果遇到利率调整，则需要更改这个值
-    init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
-    terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
+    # init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
+    # terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
 
     """
     @property 的作用
@@ -92,7 +92,9 @@ class LoanInfo:
     init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
     terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
 
-    total_months: int = 360
+    @property
+    def total_months(self):
+        return helper.interval_months(self.init_date, self.terminate_date)
 
     @property
     def loan_items(self):

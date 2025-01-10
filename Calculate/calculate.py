@@ -1,5 +1,5 @@
 from Models.M import EachMonthPayment
-
+from Calculate import helper
 """
 逻辑要求：
     计算每个月还款额.满足一下功能
@@ -12,6 +12,7 @@ from Models.M import EachMonthPayment
         提前还款的时期包含： 提前还款日期，还款额度
 """
 
+
 def each_installment(principle, monthly_rate, months):
     """
     核心业务逻辑: 计算等额本息每月的还款信息
@@ -20,6 +21,32 @@ def each_installment(principle, monthly_rate, months):
     :param months: 还款月数
     :return: 数组(month_index,each_month_payment,each_month_principal,each_month_interest)
     """
+    p = principle
+    r = monthly_rate
+    m = months
+
+    # 等额本息的算法
+    each_month_payment = (p * (r * (1 + r) ** m) / ((1 + r) ** m - 1))
+
+    # The info_list contains a EachMonthPayment
+    info_list = []
+
+    for month_index in range(1, months + 1):
+        each_month_interest = principle * monthly_rate
+        each_month_principal = each_month_payment - each_month_interest
+        principle -= each_month_principal
+        rest_principal = principle
+        result = EachMonthPayment(month_index,
+                                  each_month_payment,
+                                  each_month_principal,
+                                  each_month_interest,
+                                  rest_principal)
+        info_list.append(result)
+    return info_list
+
+
+def each_installment_(principle, monthly_rate, months):
+
     p = principle
     r = monthly_rate
     m = months

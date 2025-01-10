@@ -5,7 +5,7 @@ from Calculate import calculate
 
 
 def fetch_result_detail(info: EachMonthPayment,
-                        loan_sub_item: LoanSubItem,
+                        loan_info: LoanInfo,
                         total_payment: float,
                         total_interest: float,
                         total_payment_principal: float,
@@ -13,7 +13,7 @@ def fetch_result_detail(info: EachMonthPayment,
     """
     输出详细信息
     :param info: 每个月的还款信息
-    :param loan_sub_item: 每一个利率周期的实体
+    :param loan_info: 每一个利率周期的实体
     :param total_payment: 总还款额
     :param total_interest: 总利息
     :param total_payment_principal: 总共还款本金
@@ -22,7 +22,7 @@ def fetch_result_detail(info: EachMonthPayment,
     """
 
     month_index = info.month_index + month_interval
-    new_date = loan_sub_item.init_date + relativedelta(months=month_index)
+    new_date = loan_info.init_date + relativedelta(months=month_index)
     date_str = new_date.strftime("%Y-%m-%d")
     formatted_month = f"{month_index:03}"
 
@@ -71,7 +71,7 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_item_list: list[LoanSubItem]):
             total_payment_principal += each_month_pay_info.each_month_principal
 
             result_item = fetch_result_detail(each_month_pay_info,
-                                              loanItem,
+                                              loan_info,
                                               total_payment,
                                               total_interest,
                                               total_payment_principal,
