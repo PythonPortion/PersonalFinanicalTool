@@ -52,6 +52,7 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
         r, m = loanItem.month_rate, rest_months
         # 等额本息计算公式
         each_month_payment = (rest_principal * (r * pow(1 + r, m)) / (pow(1 + r, m) - 1))
+
         for interval_index in range(0, loanItem.interval_month):
             each_month_interest = rest_principal * r
             each_month_principal = each_month_payment - each_month_interest
