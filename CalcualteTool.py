@@ -1,8 +1,4 @@
-from Models.M import EachMonthPayment
-from Models.M import LoanType
-from Models.M import LoanSubItem
-from Models.M import LoanInfo
-from Models.M import Result
+from Models.M import EachMonthPayment, LoanType, LoanSubItem, LoanInfo, Result
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 
@@ -50,12 +46,12 @@ def calculate_equal_installment(principle, monthly_rate, months):
     :param months: 还款月数
     :return: 数组(month_index,each_month_payment,each_month_principal,each_month_interest)
     """
+    p = principle
+    r = monthly_rate
+    m = months
+
     # 等额本息的算法
-    each_month_payment = (principle
-                          *
-                          monthly_rate * (1 + monthly_rate) ** months
-                          /
-                          ((1 + monthly_rate) ** months - 1))
+    each_month_payment = (p * (r * (1 + r) ** m) / ((1 + r) ** m - 1))
 
     # The info_list contains a EachMonthPayment
     info_list = []
