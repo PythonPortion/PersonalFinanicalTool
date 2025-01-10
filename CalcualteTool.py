@@ -1,34 +1,7 @@
-from Models.M import EachMonthPayment, LoanType, LoanPeriodicalItem, LoanInfo, Result
+from Models.M import LoanType, LoanPeriodicalItem, LoanInfo, Result
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
-
-
-def each_installment(principle: float, monthly_rate: float, months: int):
-    if type(principle) is None or type(months) is None:
-        assert False, "Principle and months cannot be None"
-
-    p = principle
-    r = monthly_rate
-    m = months
-
-    # 等额本息的算法
-    each_month_payment = (p * (r * (1 + r) ** m) / ((1 + r) ** m - 1))
-
-    # The info_list contains a EachMonthPayment
-    info_list = []
-
-    for month_index in range(1, months + 1):
-        each_month_interest = principle * monthly_rate
-        each_month_principal = each_month_payment - each_month_interest
-        principle -= each_month_principal
-        rest_principal = principle
-        result = EachMonthPayment(month_index,
-                                  each_month_payment,
-                                  each_month_principal,
-                                  each_month_interest,
-                                  rest_principal)
-        info_list.append(result)
-    return info_list
+from math import pow
 
 
 def periodical_loan_items(loan_info: LoanInfo, loan_type: LoanType):
@@ -49,41 +22,6 @@ def periodical_loan_items(loan_info: LoanInfo, loan_type: LoanType):
     return loan_item_list
 
 
-def fetch_result_detail(info: EachMonthPayment,
-                        loan_info: LoanInfo,
-                        total_payment: float,
-                        total_interest: float,
-                        total_payment_principal: float,
-                        month_interval: int = 0):
-    """
-    输出详细信息
-    :param info: 每个月的还款信息
-    :param loan_info: 每一个利率周期的实体
-    :param total_payment: 总还款额
-    :param total_interest: 总利息
-    :param total_payment_principal: 总共还款本金
-    :param month_interval: 每一个利率周期的 月度总数
-    :return: 返回每个月还款的值
-    """
-
-    month_index = info.month_index + month_interval
-    new_date = loan_info.init_date + relativedelta(months=month_index)
-    date_str = new_date.strftime("%Y-%m-%d")
-    formatted_month = f"{month_index:03}"
-
-    result = Result(new_date,
-                    date_str,
-                    formatted_month,
-                    info.each_month_payment,
-                    info.each_month_principal,
-                    info.each_month_interest,
-                    total_payment,
-                    total_interest,
-                    total_payment_principal, info.rest_principal)
-
-    return result
-
-
 def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
     """
     获取公积金或者商贷每个月的还款信息
@@ -91,10 +29,6 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
     :param loan_type: 贷款类型
     :return: 每月还款额的实体
     """
-    month_interval: int = 0
-    total_payment: float = 0.0
-    total_interest: float = 0.0
-    total_payment_principal: float = 0.0
     result_list: list[Result] = []
     loan_item_list = periodical_loan_items(loan_info, loan_type)
 
@@ -105,41 +39,44 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
     elif loan_type == LoanType.GJ:
         rest_principal = loan_info.gj_principal
 
-    loan_info.rest_principal = rest_principal
-    loan_info.rest_months = loan_info.total_months
+    rest_months = loan_info.total_months
+    tmp_date = loan_info.init_date
+    month_index = 0
+
+    total_payment: float = 0
+    total_interest: float = 0
+    total_payment_principal: float = 0
 
     for index, loanItem in enumerate(loan_item_list):
         # 每个利率周期内的月度还款信息
-        equal_installment = each_installment(
-            loan_info.rest_principal,
-            loanItem.month_rate,
-            loan_info.rest_months
-        )
-        # 输出详细信息
-        for each_month_pay_info in equal_installment:
-            # 每个利率周期内的 month_index 都是从 1 开始的
-            # 因此,当month_index 大于 利率周期的月数,则需要退出，进入下一次利率周期
-            if each_month_pay_info.month_index > loanItem.interval_month:
-                break
+        r, m = loanItem.month_rate, rest_months
+        # 等额本息计算公式
+        each_month_payment = (rest_principal * (r * pow(1 + r, m)) / (pow(1 + r, m) - 1))
+        for interval_index in range(0, loanItem.interval_month):
+            each_month_interest = rest_principal * r
+            each_month_principal = each_month_payment - each_month_interest
 
-            total_payment += each_month_pay_info.each_month_payment
-            total_interest += each_month_pay_info.each_month_interest
-            total_payment_principal += each_month_pay_info.each_month_principal
+            rest_months -= 1
+            rest_principal -= each_month_principal
 
-            result_item = fetch_result_detail(each_month_pay_info,
-                                              loan_info,
-                                              total_payment,
-                                              total_interest,
-                                              total_payment_principal,
-                                              month_interval)
-            # result_list.append(result_item)
+            month_index += 1
+            tmp_date = tmp_date + relativedelta(months=1)
 
-        last_portion_index = loanItem.interval_month - 1
-        tmp_rest_p = equal_installment[last_portion_index].rest_principal
-        loan_info.rest_principal = tmp_rest_p
-        loan_info.rest_months -= loanItem.interval_month
-        # 获取上一次的间隔值
-        month_interval += loanItem.interval_month
+            total_payment += each_month_payment
+            total_interest += each_month_interest
+            total_payment_principal += each_month_principal
+
+            result_info = Result(date=tmp_date,
+                                 current_month=month_index,
+                                 each_month_payment=each_month_payment,
+                                 each_month_principal=each_month_principal,
+                                 each_month_interest=each_month_interest,
+                                 total_payment=total_payment,
+                                 total_interest=total_interest,
+                                 total_payment_principal=total_payment_principal,
+                                 rest_principle=rest_principal)
+
+            result_list.append(result_info)
 
     return result_list
 
@@ -216,7 +153,6 @@ def deal_with_combination(loan_info: LoanInfo):
 
         if (index + 1) % 12 == 0:
             print("****** " * 20)
-            print("\n")
 
 
 def get_loan_info(loan_type: LoanType):
@@ -242,4 +178,3 @@ def start():
     # get_loan_info(LoanType.GJ)
     get_loan_info(LoanType.SD)
     # get_loan_info(LoanType.ALL)
-

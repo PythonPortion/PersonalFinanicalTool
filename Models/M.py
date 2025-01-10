@@ -25,18 +25,6 @@ __eq__：生成对象比较的逻辑（基于字段的值）。
 """
 
 
-@dataclass
-class EachMonthPayment:
-    """
-    Class to represent each month payment information.
-    """
-    month_index: int  # index of month
-    each_month_payment: float
-    each_month_principal: float
-    each_month_interest: float
-    rest_principal: float
-
-
 class LoanType(Enum):
     """
     相当于其他语言中的枚举类型
@@ -177,17 +165,22 @@ def get_result_detail(current_date,
 @dataclass
 class Result:
     date: datetime
-    current_date: str
-    current_month: str
-    each_month_payment: float
+    current_month: int
 
+    each_month_payment: float
     each_month_principal: float
     each_month_interest: float
-    total_payment: float
 
+    total_payment: float
     total_interest: float
     total_payment_principal: float
+
     rest_principle: float
+
+    @property
+    def current_date(self):
+        date_str = self.date.strftime("%Y-%m-%d")
+        return date_str
 
     def __str__(self):
         desc = get_result_detail(self.current_date,
