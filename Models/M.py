@@ -78,8 +78,6 @@ class LoanInfo:
     """
     贷款信息实体
     """
-    rest_months: Optional[int] = None  # 剩余月数,此处作为可选属性，在计算的时候设置其真实值
-    rest_principal: Optional[float] = None  # 剩余月数,此处作为可选属性，在计算的时候设置其真实值
 
     sd_principal: float = (121 * 10000)  # 起始本金
     gj_principal: float = (90 * 10000)  # 起始本金
