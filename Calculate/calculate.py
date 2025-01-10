@@ -1,5 +1,16 @@
 from Models.M import EachMonthPayment
 
+"""
+逻辑要求：
+    计算每个月还款额.满足一下功能
+    - 提前还款
+    - 利率调整
+    
+    分析：
+        利率调整，和提前还款一定是数组
+        利率调整的实体包含： 调整起始日期，利率
+        提前还款的时期包含： 提前还款日期，还款额度
+"""
 
 def each_installment(principle, monthly_rate, months):
     """

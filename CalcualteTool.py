@@ -38,6 +38,7 @@ def fetch_result_detail(info: EachMonthPayment,
     # print(result)
     return result
 
+
 def get_gj_or_sd_info(loan_info: LoanInfo, loan_item_list: list[LoanSubItem]):
     """
     获取公积金或者商贷每个月的还款信息
@@ -162,9 +163,10 @@ def deal_with_combination(loan_info: LoanInfo):
                 f"剩余本金 {rest_principle:.2f}")
         print(desc)
 
-        if (index+1) % 12 == 0:
+        if (index + 1) % 12 == 0:
             print("****** " * 20)
             print("\n")
+
 
 def get_loan_info(loan_type: LoanType):
     loan_info = LoanInfo()

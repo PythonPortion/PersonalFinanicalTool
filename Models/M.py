@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from enum import Enum
 from datetime import datetime
 from typing import Optional
+from Calculate import helper
 
 """
 @dataclass 的作用
@@ -67,12 +68,7 @@ class LoanSubItem:
 
     @property
     def interval_month(self):
-        """
-        当前利率下的总月数
-        :return: Int,总月数
-        """
-        months = (self.end_date.year - self.start_date.year) * 12 + (self.end_date.month - self.start_date.month)
-        return months
+        return helper.interval_months(self.start_date, self.end_date)
 
     @property
     def month_rate(self):
@@ -90,10 +86,11 @@ class LoanInfo:
     """
     rest_months: Optional[int] = None  # 剩余月数,此处作为可选属性，在计算的时候设置其真实值
     sd_principal: float = (121 * 10000)  # 起始本金
+    gj_principal: float = (90 * 10000)
     rest_principal: Optional[float] = None  # 剩余本金
 
-    gj_principal: float = (90 * 10000)
-    gj_rest_principal: Optional[float] = None  # 剩余本金
+    init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
+    terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
 
     total_months: int = 360
 
