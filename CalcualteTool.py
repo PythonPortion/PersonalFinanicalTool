@@ -210,8 +210,8 @@ def get_loan_info(loan_type: LoanType):
 
 def start():
     # get_loan_info(LoanType.GJ)
-    # get_loan_info(LoanType.SD)
-    get_loan_info(LoanType.ALL)
+    get_loan_info(LoanType.SD)
+    # get_loan_info(LoanType.ALL)
 
 
 if __name__ == "__main__":
