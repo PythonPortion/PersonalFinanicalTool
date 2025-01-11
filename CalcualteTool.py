@@ -1,4 +1,4 @@
-from Models.M import LoanType, LoanPeriodicalItem, LoanInfo, Result
+from Models.M import LoanType, LoanPeriodicalItem, LoanInfo, Result, AdvancedPaymentItem
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from math import pow
@@ -22,14 +22,16 @@ def periodical_loan_items(loan_info: LoanInfo, loan_type: LoanType):
     return loan_item_list
 
 
-def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
+def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType, advanced_pay: AdvancedPaymentItem = None):
     """
     获取公积金或者商贷每个月的还款信息
     :param loan_info: 贷款信息
     :param loan_type: 贷款类型
+    :param advanced_pay:提前还款的信息
     :return: 每月还款额的实体
     """
-    result_list: list[Result] = []
+    result_list = []
+    # 获取所有的利率调整的信息
     loan_item_list = periodical_loan_items(loan_info, loan_type)
 
     rest_principal: float = 0
@@ -40,12 +42,15 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
         rest_principal = loan_info.gj_principal
 
     rest_months = loan_info.total_months
-    tmp_date = loan_info.init_date
+    current_date_index = loan_info.init_date
     month_index = 0
 
     total_payment: float = 0
     total_interest: float = 0
     total_payment_principal: float = 0
+
+    advanced_date = loan_info.init_date + relativedelta(years=4)
+    print("advanced_date", advanced_date.strftime("%Y/%m/%d"))
 
     for index, loanItem in enumerate(loan_item_list):
         # 每个利率周期内的月度还款信息
@@ -61,13 +66,13 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
             rest_principal -= each_month_principal
 
             month_index += 1
-            tmp_date = tmp_date + relativedelta(months=1)
+            current_date_index = current_date_index + relativedelta(months=1)
 
             total_payment += each_month_payment
             total_interest += each_month_interest
             total_payment_principal += each_month_principal
 
-            result_info = Result(date=tmp_date,
+            result_info = Result(date=current_date_index,
                                  current_month=month_index,
                                  each_month_payment=each_month_payment,
                                  each_month_principal=each_month_principal,
@@ -78,6 +83,16 @@ def get_gj_or_sd_info(loan_info: LoanInfo, loan_type: LoanType):
                                  rest_principle=rest_principal)
 
             result_list.append(result_info)
+
+            if current_date_index == advanced_date and loan_type == LoanType.SD:
+                print("需要提前还款了", advanced_date.strftime("%Y/%m"))
+                advanced_date += relativedelta(years=1)
+                """
+                想办法将每一次提前还款那个日期的 所有信息保存下来，在执行一次计算逻辑
+                需要保存的信息有：
+                1. 贷款的基础信息
+                2. 已经还款的所有信息
+                """
 
     return result_list
 

@@ -191,3 +191,29 @@ class Result:
                                  self.total_payment_principal,
                                  self.rest_principle)
         return desc
+
+
+@dataclass
+class AdvancedPaymentItem:
+    """
+    提前还款的信息
+    提前还款不会调整期数，只减少月供
+    """
+    # 提前还款的日期
+    advanced_date: datetime
+    # 提前还款的金额
+    amount: float
+    # 提前还款的贷款信息的索引值
+    periodical_loan_info_index: int
+
+    # 提前还款之前的所有记录
+
+    previous_record_list: list[Result]
+    rest_principle: float
+    rest_months: int
+    current_date_index: datetime
+    month_index: int
+    total_payment: float
+    total_interest: float
+    total_payment_principal: float
+
