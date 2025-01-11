@@ -120,8 +120,8 @@ def print_loan_result_detail(result_list: list[Result],
 
         print(result)
 
-        if result.each_month_principal > result.each_month_interest:
-            print("不要在提前还款了。。。。。")
+        # if result.each_month_principal > result.each_month_interest:
+        #     print("不要在提前还款了。。。。。")
 
         date_tmp = datetime.strptime(result.current_date, "%Y-%m-%d")
 
