@@ -82,7 +82,7 @@ class LoanInfo:
     sd_principal: float = (121 * 10000)  # 起始本金
     gj_principal: float = (90 * 10000)  # 起始本金
 
-    advanced_amount: float = (1 * 10000)
+    advanced_amount: float = (2 * 10000)
 
     init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
     terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
