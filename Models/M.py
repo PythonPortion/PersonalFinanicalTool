@@ -82,6 +82,8 @@ class LoanInfo:
     sd_principal: float = (121 * 10000)  # 起始本金
     gj_principal: float = (90 * 10000)  # 起始本金
 
+    advanced_amount: float = (1 * 10000)
+
     init_date: datetime = datetime(2023, 5, 22)  # 合同开始时间,不要进行修改！！！
     terminate_date: datetime = datetime(2053, 5, 22)  # 合同结束时间,不要进行修改！！！
 
@@ -162,6 +164,8 @@ def get_result_detail(current_date,
 
 @dataclass
 class Result:
+    is_advanced_pay: bool  # 是否是提前还款
+    advanced_amount: float  # 提前还款的金额
     date: datetime
     current_month: int
 
@@ -203,8 +207,8 @@ class AdvancedPaymentItem:
     advanced_date: datetime
     # 提前还款的金额
     amount: float
-    # 提前还款的贷款信息的索引值
-    periodical_loan_info_index: int
+    # 提前还款的贷款信息的
+    periodical_loan_info: int
 
     # 提前还款之前的所有记录
 
